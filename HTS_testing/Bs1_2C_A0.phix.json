@@ -1,0 +1,51 @@
+[ {
+    "Program_details": {
+        "program": "hts_SeqScreener",
+        "version": "v1.3.3-8-gf59e3c0",
+        "options": {
+            "check-read-2": false,
+            "fastq-output": "Bs1_2C_A0.phix",
+            "force": false,
+            "inverse": false,
+            "kmer": 12,
+            "notes": "",
+            "percentage-hits": 0.25,
+            "read1-input": [ "Bs1_2C_A0.subset_R1.fastq.gz"],
+            "read2-input": [ "Bs1_2C_A0.subset_R2.fastq.gz"],
+            "record": true,
+            "stats-file": "Bs1_2C_A0.phix.json",
+            "uncompressed": false
+        },
+        "screen_info": {
+            "screenBP": 5386,
+            "lookupKmers": 5372
+        }
+    },
+    "Fragment": {
+        "in": 100000,
+        "out": 100000,
+        "basepairs_in": 60200000,
+        "basepairs_out": 60200000
+    },
+    "Single_end": {
+        "in": 0,
+        "out": 0,
+        "basepairs_in": 0,
+        "basepairs_out": 0,
+        "hits": 0
+    },
+    "Paired_end": {
+        "in": 100000,
+        "out": 100000,
+        "hits": 0,
+        "Read1": {
+            "basepairs_in": 30100000,
+            "basepairs_out": 30100000
+        },
+        "Read2": {
+            "basepairs_in": 30100000,
+            "basepairs_out": 30100000
+        }
+    }
+  }
+]

@@ -1,0 +1,9 @@
+Module	Section	Sample Name	Source
+HTStream	all_sections	Bs1_2C_B5	/share/workshop/mca_workshop/nasiegel/01-HTS_Preproc/Bs1_2C_B5.json
+HTStream	all_sections	Bs1_2C_A0	/share/workshop/mca_workshop/nasiegel/01-HTS_Preproc/Bs1_2C_A0.json
+HTStream	all_sections	Bs1_2C_C5	/share/workshop/mca_workshop/nasiegel/01-HTS_Preproc/Bs1_2C_C5.json
+HTStream	all_sections	Bs1_2C_C0	/share/workshop/mca_workshop/nasiegel/01-HTS_Preproc/Bs1_2C_C0.json
+HTStream	all_sections	Bs1_2C_A5	/share/workshop/mca_workshop/nasiegel/01-HTS_Preproc/Bs1_2C_A5.json
+HTStream	all_sections	Bs1_2C_B0	/share/workshop/mca_workshop/nasiegel/01-HTS_Preproc/Bs1_2C_B0.json
+HTStream	all_sections	Bs1_2C_D0	/share/workshop/mca_workshop/nasiegel/01-HTS_Preproc/Bs1_2C_D0.json
+HTStream	all_sections	Bs1_2C_D5	/share/workshop/mca_workshop/nasiegel/01-HTS_Preproc/Bs1_2C_D5.json

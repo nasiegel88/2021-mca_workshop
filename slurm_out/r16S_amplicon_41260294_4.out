@@ -1,0 +1,5 @@
+fleet-29
+My SLURM_ARRAY_TASK_ID:  4
+SAMPLE: Bs1_2C_B5
+hts_Stats --stats-file 01-HTS_Preproc/Bs1_2C_B5.json -1 00-RawData/Bs1_2C_B5_R1.fastq.gz -2 00-RawData/Bs1_2C_B5_R2.fastq.gz --notes 'Initial Stats' | hts_Overlapper --append-stats-file 01-HTS_Preproc/Bs1_2C_B5.json --number-of-threads 4 --notes 'Overlap reads' | hts_Primers --append-stats-file 01-HTS_Preproc/Bs1_2C_B5.json --primers_5p GTGYCAGCMGCCGCGGTAA --primers_3p GGACTACNVGGGTWTCTAAT --min_primer_matches 2 --flip --float 5 --notes 'Single set V3V4 primers' | hts_NTrimmer --append-stats-file 01-HTS_Preproc/Bs1_2C_B5.json --exclude --notes 'Remove any reads with Ns' | hts_LengthFilter --append-stats-file 01-HTS_Preproc/Bs1_2C_B5.json --min-length 100 --max-length 400 --notes 'Filter sequences 100 - 400' | hts_Stats --append-stats-file 01-HTS_Preproc/Bs1_2C_B5.json --force --fastq-output 01-HTS_Preproc/Bs1_2C_B5 --notes 'Final Stats'
+25
