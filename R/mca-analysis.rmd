@@ -1,0 +1,192 @@
+---
+title: "MCA Analysis"
+author: "Noah Siegel"
+date: "5/18/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+ if (!requireNamespace("BiocManager", quietly = TRUE))
+     install.packages("BiocManager")
+ BiocManager::install(c("dada2", "phyloseq"))
+ BiocManager::install(c("DECIPHER", "phangorn"))
+library(dada2); packageVersion("dada2")
+```
+
+```{r}
+path <- "01-HTS_Preproc"
+list.files(path)
+```
+
+
+```{r}
+fnSEs = sort(list.files(path, pattern="*_SE.fastq", full.names=T))
+sample.names <-  sapply(strsplit(basename(fnSEs), "_SE"), `[`, 1)
+```
+
+```{r}
+split_names <- strsplit(sample.names,split="_")
+grp <- sapply(split_names, "[[",1L)
+temp <- sapply(split_names,"[[",2L)
+replicate <- sapply(split_names,"[[",3L)
+
+mdata <- data.frame("SampleID"=sample.names, "Group"=grp, "Temp"=temp, "Replicate"=replicate)
+```
+
+```{r}
+png(file.path("03-DADA2","fnSEs_quality.png"), width=2000, height=1000)
+plotQualityProfile(fnSEs)
+dev.off()
+```
+
+```{r}
+# time consuming
+derep <- derepFastq(fnSEs)
+errU <- learnErrors(derep, multithread=TRUE, nreads=50000)
+```
+
+```{r}
+png(file.path("03-DADA2","errors-profiles.png"), width=2500, height=1500)
+plotErrors(errU, nominalQ=TRUE)
+dev.off()
+```
+
+```{r}
+dadaUs = dada(fnSEs, err=errU, multithread=TRUE)
+```
+
+```{r}
+seqtab <- makeSequenceTable(dadaUs)
+rownames(seqtab) = sample.names
+
+save(seqtab, file=file.path("03-DADA2","seqtab.RData"))
+```
+
+```{r}
+seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
+```
+
+```{r}
+sum(seqtab.nochim)/sum(seqtab)
+```
+
+
+```{r}
+table(nchar(getSequences(seqtab)))
+```
+
+```{r}
+table(nchar(setdiff(getSequences(seqtab),getSequences(seqtab.nochim))))
+```
+
+```{r}
+save(seqtab.nochim, file=file.path("03-DADA2","seqtab.nochim.RData"))
+```
+
+```{r}
+getN <- function(x) sum(getUniques(x))
+
+track = data.frame(input = sapply(derep, getN),
+                   denoised = rowSums(seqtab),
+                   nochim = rowSums(seqtab.nochim),
+                   ASVs = rowSums(seqtab > 0),
+                   ASVs.nochim = rowSums(seqtab.nochim > 0))
+
+rownames(track) <- sample.names
+track
+
+write.table(data.frame(sample=rownames(track), track), file=file.path("03-DADA2","read_tracking.tsv"), sep='\t', row.names=F)
+```
+
+```{r}
+dir.create("SILVA")
+download.file("https://zenodo.org/record/4587955/files/silva_nr99_v138.1_train_set.fa.gz?download=1", "SILVA/silva_nr99_v138.1_train_set.fa.gz")
+download.file("https://zenodo.org/record/4587955/files/silva_species_assignment_v138.1.fa.gz?download=1", "SILVA/silva_species_assignment_v138.1.fa.gz")
+```
+
+
+```{r}
+taxa.silva.nochim = assignTaxonomy(seqtab.nochim, "SILVA/silva_nr99_v138.1_train_set.fa.gz", multithread = T, minBoot=0, outputBootstraps = TRUE)
+```
+
+```{r}
+table(taxa.silva.nochim[[2]][,6] >= 50, useNA ="always")
+```
+
+```{r}
+taxa.silva.nochim.deboot <- taxa.silva.nochim[[1]]
+taxa.silva.nochim.deboot[taxa.silva.nochim[[2]] < 50] <- NA
+```
+
+```{r}
+taxa.silva.nochim.deboot = addSpecies(taxa.silva.nochim.deboot, "SILVA/silva_species_assignment_v138.1.fa.gz")
+
+save(taxa.silva.nochim.deboot, file=file.path("03-DADA2", "taxa.silva.nochim.RData"))
+```
+
+```{r}
+colSums(!is.na(taxa.silva.nochim.deboot))
+```
+
+```{r}
+alignment = AlignSeqs(ASVs.nochim[1:1000], anchor=NA, processors=30)
+
+phang.align <- phyDat(as(alignment, "matrix"), type="DNA")
+dm <- dist.ml(phang.align)
+treeNJ <- NJ(dm)
+
+fit = pml(treeNJ, data=phang.align)
+fitGTR <- update(fit, k=4, inv=0.2)
+#fitGTR <- optim.pml(fitGTR, model="GTR", optInv=TRUE, optGamma=TRUE, rearrangement = "stochastic", control = pml.control(trace = 0))
+```
+
+```{r}
+save(fitGTR, file=file.path("03-DADA2", "fitGTR.RData"))
+```
+
+* 'otu' table
+* sample metadata
+* taxanomic table
+* sequences
+* phylogenetic tree
+
+```{r}
+mdata2 = mdata[match(rownames(seqtab.nochim), mdata$SampleID), ]
+rownames(mdata2) = mdata2$SampleID
+
+ASVs.nochim = DNAStringSet(colnames(seqtab.nochim))
+names(ASVs.nochim) = paste0("ASV", 1:ncol(seqtab.nochim))
+
+tmp.seqtab = seqtab.nochim
+colnames(tmp.seqtab) = names(ASVs.nochim)
+tmp.taxa = taxa.silva.nochim.deboot
+rownames(tmp.taxa) = names(ASVs.nochim)
+```
+
+```{r}
+library(phyloseq); packageVersion("phyloseq")
+
+ps.silva.nochim = phyloseq(
+             otu_table(tmp.seqtab, taxa_are_rows=FALSE),
+             sample_data(mdata2),
+             tax_table(tmp.taxa),
+             refseq(ASVs.nochim),
+             phy_tree(fitGTR$tree))
+
+ps.silva.nochim
+```
+
+```{r}
+save(ps.silva.nochim, file=file.path("03-DADA2", "phyloseq_nochim_silva.RData"))
+```
+
