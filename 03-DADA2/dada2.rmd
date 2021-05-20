@@ -16,13 +16,10 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r}
-## CODE to install the needed packages
-# if (!requireNamespace("BiocManager", quietly = TRUE))
-#     install.packages("BiocManager")
-# BiocManager::install(c("dada2", "phyloseq"))
-# BiocManager::install(c("DECIPHER", "phangorn"))
-##
-
+ if (!requireNamespace("BiocManager", quietly = TRUE))
+     install.packages("BiocManager")
+ BiocManager::install(c("dada2", "phyloseq"))
+ BiocManager::install(c("DECIPHER", "phangorn"))
 library(dada2); packageVersion("dada2")
 ```
 
@@ -83,7 +80,6 @@ seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE
 sum(seqtab.nochim)/sum(seqtab)
 ```
 
-
 ```{r}
 table(nchar(getSequences(seqtab)))
 ```
@@ -116,7 +112,6 @@ dir.create("SILVA")
 download.file("https://zenodo.org/record/4587955/files/silva_nr99_v138.1_train_set.fa.gz?download=1", "SILVA/silva_nr99_v138.1_train_set.fa.gz")
 download.file("https://zenodo.org/record/4587955/files/silva_species_assignment_v138.1.fa.gz?download=1", "SILVA/silva_species_assignment_v138.1.fa.gz")
 ```
-
 
 ```{r}
 taxa.silva.nochim = assignTaxonomy(seqtab.nochim, "SILVA/silva_nr99_v138.1_train_set.fa.gz", multithread = T, minBoot=0, outputBootstraps = TRUE)
@@ -192,4 +187,3 @@ ps.silva.nochim
 ```{r}
 save(ps.silva.nochim, file=file.path("03-DADA2", "phyloseq_nochim_silva.RData"))
 ```
-
